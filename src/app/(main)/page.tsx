@@ -1,5 +1,10 @@
-import Image from "next/image";
+import { getCompanies, getDrivers } from "@/actions/actions";
+import DriversTable from "@/components/global/DriversTable";
 
-export default function Home() {
-  return <div>kmk</div>;
+export default async function Home() {
+  return (
+    <div>
+      <DriversTable />
+    </div>
+  );
 }

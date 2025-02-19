@@ -1,0 +1,35 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+ 
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Company {
+  id String @id @default(cuid())
+  name String
+  drivers DriversOnCompany[]
+}
+
+model Driver {
+  id String @id @default(cuid())
+  name String
+  lastName String
+  phoneNumber String?
+  companies DriversOnCompany[]
+}
+
+model DriversOnCompany {
+  company Company @relation(fields: [companyId], references: [id])
+  companyId String
+
+  driver Driver @relation(fields: [driverId], references: [id])
+  driverId String
+
+  spot Int  // New field to track driver slots
+
+  @@id([companyId, spot]) // Ensures each spot in a company is unique
+  @@unique([companyId, driverId]) // Ensures each driver is assigned only once per company
+}
