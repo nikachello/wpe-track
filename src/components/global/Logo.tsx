@@ -1,6 +1,5 @@
 import Link from "next/link";
 import React from "react";
-import LogoImage from "@/public/logo.png";
 
 type Props = {
   classname?: string;
