@@ -138,18 +138,16 @@ const DriversTable = () => {
                     <Select value={currentValue} onValueChange={handleChange}>
                       <SelectTrigger>
                         <SelectValue
-                          placeholder={
-                            currentDriver?.name || "თავისუფალი ადგილი"
-                          }
+                          placeholder={currentDriver?.name || "თავისუფალი"}
                         >
-                          {currentDriver?.name || "თავისუფალი ადგილი"}
+                          {currentDriver?.name || "თავისუფალი"}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem
                           value={`${undefined}:${company.id}:${spotIndex}:remove`}
                         >
-                          თავისუფალი ადგილი
+                          თავისუფალი
                         </SelectItem>
 
                         {availableDrivers.map((driver) => (
