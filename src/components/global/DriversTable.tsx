@@ -158,9 +158,7 @@ const DriversTable = () => {
                             value={`${driver.id}:${company.id}:${spotIndex}:change`}
                           >
                             {driver.name}
-                            {freeDrivers.includes(driver)
-                              ? " (თავისუფალი)"
-                              : ""}
+                            {freeDrivers.includes(driver) ? "" : ""}
                           </SelectItem>
                         ))}
                       </SelectContent>
