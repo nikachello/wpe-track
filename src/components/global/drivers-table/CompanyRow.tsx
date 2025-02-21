@@ -1,6 +1,7 @@
 import { TableCell, TableRow } from "@/components/ui/table";
 import { SPOTS_PER_COMPANY } from "@/utils/constants";
 import { DriverSelect } from "./DriverSelect";
+import { Company, Driver } from "@/utils/types";
 
 interface CompanyRowProps {
   company: Company;

@@ -26,12 +26,14 @@ export const removeDriverFromCompany = async (
     throw new Error("Invalid spot or companyId");
   }
 
-  return await prisma.driversOnCompany.deleteMany({
+  await prisma.driversOnCompany.deleteMany({
     where: {
       companyId,
       spot,
     },
   });
+
+  return;
 };
 
 export const assignDriverToCompany = async (

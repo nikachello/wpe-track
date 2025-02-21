@@ -5,6 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Company, Driver } from "@/utils/types";
 
 interface DriverSelectProps {
   currentDriver?: Driver | null;

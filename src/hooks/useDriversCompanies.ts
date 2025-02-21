@@ -12,8 +12,8 @@ const useFetchData = <T>(key: string, fetchFn: () => Promise<T>) => {
 };
 
 // Mutations Hook
-const useMutationWithInvalidation = <T>(
-  mutationFn: (params: T) => Promise<any>
+const useMutationWithInvalidation = <T, U>(
+  mutationFn: (params: T) => Promise<U>
 ) => {
   const queryClient = useQueryClient();
 
@@ -41,22 +41,17 @@ export const useDriversCompanies = () => {
   );
 
   // Mutations
-  const assignDriverMutation = useMutationWithInvalidation(
-    ({
-      driverId,
-      companyId,
-      spot,
-    }: {
-      driverId: string;
-      companyId: string;
-      spot: number;
-    }) => assignDriverToCompany(driverId, companyId, spot)
+  const assignDriverMutation = useMutationWithInvalidation<
+    { driverId: string; companyId: string; spot: number },
+    { companyId: string; driverId: string; spot: number }
+  >(({ driverId, companyId, spot }) =>
+    assignDriverToCompany(driverId, companyId, spot)
   );
 
-  const removeDriverMutation = useMutationWithInvalidation(
-    ({ companyId, spot }: { companyId: string; spot: number }) =>
-      removeDriverFromCompany(companyId, spot)
-  );
+  const removeDriverMutation = useMutationWithInvalidation<
+    { companyId: string; spot: number },
+    void
+  >(({ companyId, spot }) => removeDriverFromCompany(companyId, spot));
 
   return {
     drivers,
