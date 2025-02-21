@@ -33,3 +33,8 @@ model DriversOnCompany {
   @@id([companyId, spot]) // Ensures each spot in a company is unique
   @@unique([companyId, driverId]) // Ensures each driver is assigned only once per company
 }
+
+
+model Dispatcher {
+  id String @id @default(cuid())
+}

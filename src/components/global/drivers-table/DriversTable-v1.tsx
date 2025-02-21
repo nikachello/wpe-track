@@ -1,5 +1,7 @@
 "use client";
 import React from "react";
+
+import { toast } from "sonner";
 import {
   Table,
   TableBody,
@@ -15,50 +17,19 @@ import {
   SelectTrigger,
   SelectValue,
   SelectItem,
-} from "../ui/select";
-import {
-  assignDriverToCompany,
-  getCompanies,
-  getDrivers,
-  removeDriverFromCompany,
-} from "@/actions/actions";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-const SPOTS_PER_COMPANY = 2;
+} from "../../ui/select";
+import { useDriversCompanies } from "@/hooks/useDriversCompanies";
+import { SPOTS_PER_COMPANY } from "@/utils/constants";
 
 const DriversTable = () => {
-  const queryClient = useQueryClient();
-
-  const { data: drivers = [], isLoading: driversLoading } = useQuery({
-    queryKey: ["drivers"],
-    queryFn: () => getDrivers(),
-  });
-
-  const { data: companies = [], isLoading: companiesLoading } = useQuery({
-    queryKey: ["companies"],
-    queryFn: () => getCompanies(),
-  });
-
-  const assignDriverMutation = useMutation({
-    mutationFn: (params: {
-      driverId: string;
-      companyId: string;
-      spot: number;
-    }) => assignDriverToCompany(params.driverId, params.companyId, params.spot),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["drivers"] });
-      queryClient.invalidateQueries({ queryKey: ["companies"] });
-    },
-  });
-
-  const removeDriverMutation = useMutation({
-    mutationFn: ({ companyId, spot }: { companyId: string; spot: number }) =>
-      removeDriverFromCompany(companyId, spot),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["drivers"] });
-      queryClient.invalidateQueries({ queryKey: ["companies"] });
-    },
-  });
+  const {
+    drivers,
+    driversLoading,
+    companies,
+    companiesLoading,
+    assignDriverMutation,
+    removeDriverMutation,
+  } = useDriversCompanies();
 
   const handleChange = async (value: string) => {
     const [driverId, companyId, spot, action] = value.split(":");
@@ -77,7 +48,9 @@ const DriversTable = () => {
         });
       }
     } catch (error) {
-      console.error("Error updating driver assignment:", error);
+      toast("შეცდომა!");
+    } finally {
+      toast("მძღოლი წარმატებით შეიცვალა");
     }
   };
 
@@ -120,15 +93,15 @@ const DriversTable = () => {
                   ? drivers.find((d) => d.id === assignedDriver.driverId)
                   : null;
 
-                // Get all drivers currently assigned to this company
+                // მძროლები რომლებიც მიმაგრებულები არიან კომპანიას
                 const companyDriverIds = company.drivers.map((d) => d.driverId);
 
-                // Get available drivers
+                // ყველა თავისუფალი მძღოლი კონკრეტული კომპანიისთვის
                 const availableDrivers = drivers.filter(
                   (driver) => !companyDriverIds.includes(driver.id)
                 );
 
-                // Calculate the current value for the Select
+                // გავიგოთ რა უნდა ეწეროს ლეიბლად
                 const currentValue = currentDriver
                   ? `${currentDriver.id}:${company.id}:${spotIndex}:change`
                   : `${undefined}:${company.id}:${spotIndex}:remove`;

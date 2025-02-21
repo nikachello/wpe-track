@@ -1,3 +1,5 @@
+export const SPOTS_PER_COMPANY = 2;
+
 export const drivers = [
   {
     name: "Daviti",
