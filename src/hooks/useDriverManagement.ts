@@ -1,3 +1,5 @@
+import { Company, Driver } from "@/utils/types";
+
 export const useDriverManagement = (
   drivers: Driver[],
   companies: Company[]
