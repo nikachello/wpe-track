@@ -1,11 +1,10 @@
-import {scan} from "react-scan"
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/providers/theme-provider";
 import ReactQueryProvider from "@/providers/react-query-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { ReactScan } from "@/components/global/ReactScan";
+// import { ReactScan } from "@/components/global/ReactScan";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

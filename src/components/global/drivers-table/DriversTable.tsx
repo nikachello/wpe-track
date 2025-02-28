@@ -13,7 +13,7 @@ import { SPOTS_PER_COMPANY } from "@/utils/constants";
 import { toast } from "sonner";
 import { CompanyRow } from "./CompanyRow";
 import { TableSkeleton } from "./TableSkeleton";
-import SocketClient from "../SocketClient";
+// import SocketClient from "../SocketClient";
 
 export const DriversTable: React.FC = () => {
   const {

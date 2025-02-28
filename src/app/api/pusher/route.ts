@@ -11,7 +11,7 @@ const pusher = new Pusher({
 });
 
 // API Route Handler
-export async function POST(req: NextApiRequest, res: NextApiResponse) {
+export async function POST(req: NextApiRequest) {
   if (req.method === "POST") {
     const { driverId, companyId } = req.body;
 

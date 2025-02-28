@@ -22,7 +22,7 @@ const SocketClient = () => {
     return () => {
       pusher.unsubscribe("drivers");
     };
-  }, []);
+  }, [queryClient]);
 
   return <div></div>;
 };
