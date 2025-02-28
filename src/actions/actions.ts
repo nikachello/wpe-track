@@ -62,24 +62,5 @@ export const assignDriverToCompany = async (
     },
   });
 
-  if (result) {
-    try {
-      const response = await fetch(`http://localhost:3000/api/pusher`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ driverId, companyId }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Error from Pusher API: ${response.statusText}`);
-      }
-
-      // or return a success message or result if needed
-    } catch (error) {
-      console.error("Error during fetch to /api/pusher:", error);
-      throw new Error("Error triggering Pusher event");
-    }
-  }
+  return result;
 };
