@@ -1,4 +1,4 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextResponse } from "next/server";
 import Pusher from "pusher";
 
 // Initialize Pusher
@@ -11,26 +11,19 @@ const pusher = new Pusher({
 });
 
 // API Route Handler
-export async function POST(req: NextApiRequest) {
-  if (req.method === "POST") {
-    const { driverId, companyId } = req.body;
+export async function POST(req: Request) {
+  try {
+    const { driverId, companyId } = await req.json();
 
-    try {
-      // Trigger Pusher event
-      await pusher.trigger("drivers", "driverAssigned", {
-        driverId,
-        companyId,
-      });
-      return new Response("Event triggered", { status: 200 });
-    } catch (error) {
-      console.log("Error triggering Pusher event:", error);
-      if (error instanceof Error) {
-        console.log(error.message);
-        return new Response(`Error: ${error.message}`, { status: 400 });
-      }
-    }
+    // Trigger Pusher event
+    await pusher.trigger("drivers", "driverAssigned", {
+      driverId,
+      companyId,
+    });
+
+    return NextResponse.json({ message: "Event triggered" }, { status: 200 });
+  } catch (error) {
+    console.error("Error triggering Pusher event:", error);
+    return NextResponse.json({ error: "Failed to trigger event" }, { status: 500 });
   }
-
-  // Handle unsupported HTTP methods
-  return new Response("Method not allowed", { status: 405 });
 }

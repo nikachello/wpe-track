@@ -43,7 +43,7 @@ export const useDriversCompanies = () => {
   // Mutations
   const assignDriverMutation = useMutationWithInvalidation<
     { driverId: string; companyId: string; spot: number },
-    { companyId: string; driverId: string; spot: number }
+    void
   >(({ driverId, companyId, spot }) =>
     assignDriverToCompany(driverId, companyId, spot)
   );
