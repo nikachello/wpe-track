@@ -9,8 +9,7 @@ export default async function Home() {
 
   return (
     <div>
-      {user!.name}
-      <DriversTable />
+      <DriversTable user={user!} />
     </div>
   );
 }

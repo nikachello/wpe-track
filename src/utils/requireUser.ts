@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
 import { redirect } from "next/navigation";
+import { User } from "@prisma/client";
 
 export const requireUser = async (redirectUrl?: string) => {
   const session = await auth.api.getSession({
@@ -13,5 +14,5 @@ export const requireUser = async (redirectUrl?: string) => {
     return null;
   }
 
-  return session.user;
+  return session.user as User;
 };

@@ -13,9 +13,14 @@ import { SPOTS_PER_COMPANY } from "@/utils/constants";
 import { toast } from "sonner";
 import { CompanyRow } from "./CompanyRow";
 import { TableSkeleton } from "./TableSkeleton";
+import { User } from "@prisma/client";
 // import SocketClient from "../SocketClient";
 
-export const DriversTable: React.FC = () => {
+interface DriversTableProps {
+  user: User;
+}
+
+export const DriversTable: React.FC<DriversTableProps> = ({ user }) => {
   const {
     drivers,
     driversLoading,

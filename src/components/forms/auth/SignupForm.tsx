@@ -1,27 +1,19 @@
 "use client";
-import { signUpSchema } from "@/utils/zodSchemas";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { toast } from "sonner";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "../../ui/form";
-import { Input } from "../../ui/input";
+import { toast } from "sonner";
+import { Form } from "../../ui/form";
 import { Button } from "../../ui/button";
 import { authClient } from "@/utils/auth-client";
-import { redirect } from "next/navigation";
+import { signUpSchema } from "@/utils/zodSchemas";
+import { useRouter } from "next/navigation";
+import { AuthFormField } from "./AuthFormField";
 
-type Props = {};
-
-const SignupForm = (props: Props) => {
+const SignupForm = () => {
   const [pending, setPending] = useState(false);
+  const router = useRouter();
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),
@@ -34,91 +26,53 @@ const SignupForm = (props: Props) => {
 
   const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
     const { name, email, password } = values;
-    await authClient.signUp.email(
-      {
+
+    try {
+      setPending(true);
+      toast.info("გთხოვთ დაელოდოთ");
+
+      await authClient.signUp.email({
         email,
         password,
         name,
-        callbackURL: "/sign-in",
-      },
-      {
-        onRequest: () => {
-          setPending(true);
-          toast.success("გთხოვთ დაელოდოთ");
-        },
-        onSuccess: () => {
-          form.reset();
-          redirect("/");
-        },
-        onError: (ctx) => {
-          toast.success(ctx.error.message);
-          setPending(false);
-        },
-      }
-    );
+        callbackURL: "/",
+      });
+
+      form.reset();
+      router.push("/");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Registration failed"
+      );
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-4">
-          <FormField
+          <AuthFormField
             control={form.control}
             name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-muted-foreground">
-                  სახელი
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="text-xs"
-                    placeholder="თქვენი სახელი"
-                    {...field}
-                  ></Input>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="სახელი"
+            placeholder="თქვენი სახელი"
           />
-          <FormField
+
+          <AuthFormField
             control={form.control}
             name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-muted-foreground">
-                  ელ-ფოსტა
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="text-xs"
-                    placeholder="john@wpe.com"
-                    {...field}
-                  ></Input>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="ელ-ფოსტა"
+            placeholder="john@wpe.com"
           />
-          <FormField
+
+          <AuthFormField
             control={form.control}
             name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm text-muted-foreground">
-                  პაროლი
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    className="text-xs"
-                    placeholder="პაროლი"
-                    type="password"
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            label="პაროლი"
+            placeholder="პაროლი"
+            type="password"
           />
 
           <Button disabled={pending} type="submit" className="w-full">
