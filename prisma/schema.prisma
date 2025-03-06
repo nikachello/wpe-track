@@ -19,6 +19,14 @@ model Company {
   drivers DriversOnCompany[]
 }
 
+model RealCompany {
+  id String @id @default(cuid())
+  name String
+  phone String
+  email String
+  
+}
+
 model Driver {
   id          String             @id @default(cuid())
   name        String
@@ -70,7 +78,7 @@ model User {
   email String  @unique
   name  String?
 
-  userType UserType?
+  userType UserType @default(DISPATCHER)
 
   Dispatcher Dispatcher?
 

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/utils/db";
+import { User } from "@prisma/client";
 
 export const getDrivers = async () => {
   return await prisma.driver.findMany({
@@ -63,4 +64,19 @@ export const assignDriverToCompany = async (
   });
 
   return result;
+};
+
+export const createDispatcherFromUser = async (user: User) => {
+  if (!user.id) {
+    throw new Error("No userId");
+  }
+
+  const dispatcher = await prisma.dispatcher.create({
+    data: {
+      name: user.name!,
+      userId: user.id,
+    },
+  });
+
+  return dispatcher;
 };

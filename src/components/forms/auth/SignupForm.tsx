@@ -8,7 +8,7 @@ import { Form } from "../../ui/form";
 import { Button } from "../../ui/button";
 import { authClient } from "@/utils/auth-client";
 import { signUpSchema } from "@/utils/zodSchemas";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { AuthFormField } from "./AuthFormField";
 
 const SignupForm = () => {
@@ -26,27 +26,28 @@ const SignupForm = () => {
 
   const onSubmit = async (values: z.infer<typeof signUpSchema>) => {
     const { name, email, password } = values;
-
-    try {
-      setPending(true);
-      toast.info("გთხოვთ დაელოდოთ");
-
-      await authClient.signUp.email({
+    await authClient.signUp.email(
+      {
         email,
         password,
         name,
-        callbackURL: "/",
-      });
-
-      form.reset();
-      router.push("/");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Registration failed"
-      );
-    } finally {
-      setPending(false);
-    }
+        callbackURL: "/sign-in",
+      },
+      {
+        onRequest: () => {
+          setPending(true);
+          toast.success("გთხოვთ დაელოდოთ");
+        },
+        onSuccess: () => {
+          form.reset();
+          redirect("/");
+        },
+        onError: (ctx) => {
+          toast.success(ctx.error.message);
+          setPending(false);
+        },
+      }
+    );
   };
 
   return (

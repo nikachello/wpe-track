@@ -23,23 +23,29 @@ const LoginForm = () => {
 
   const onSubmit = async (values: z.infer<typeof signInSchema>) => {
     const { email, password } = values;
-
-    try {
-      setPending(true);
-      toast.info("გთხოვთ დაელოდოთ");
-
-      await authClient.signIn.email({
+    await authClient.signIn.email(
+      {
         email,
         password,
-        callbackURL: "/",
-      });
 
-      form.reset();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "მოხდა შეცდომა");
-    } finally {
-      setPending(false);
-    }
+        callbackURL: "/",
+      },
+      {
+        onRequest: () => {
+          setPending(true);
+          toast.success("გთხოვთ დაელოდოთ");
+        },
+        onSuccess: () => {
+          form.reset();
+        },
+        onError: (ctx) => {
+          if (ctx.error.status === 401) {
+            toast.success("არასწორი მონაცემები");
+          }
+          setPending(false);
+        },
+      }
+    );
   };
 
   return (

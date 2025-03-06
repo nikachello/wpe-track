@@ -10,3 +10,9 @@ export const signUpSchema = z.object({
   email: z.string().email({ message: "შეიყვანეთ სწორი ელ-ფოსტა" }),
   password: z.string().min(6, "შეიყვანეთ პაროლი"),
 });
+
+export const realCompanySchema = z.object({
+  name: z.string().min(1, "შეიყვანეთ კომპანიის სახელი"),
+  phone: z.string().min(1, "ნომერი აუცილებელია"),
+  email: z.string().email({ message: "შეიყვანეთ სწორი ელ ფოსტა" }),
+});
