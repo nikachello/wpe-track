@@ -1,5 +1,5 @@
 "use client";
-import { addRealCompany } from "@/actions/admin-actions";
+import { addRealCompany, editRealCompany } from "@/actions/admin-actions";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -10,36 +10,64 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { useCompanyContext } from "@/context/RealCompanyContext";
 import { realCompanySchema } from "@/utils/zodSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import React from "react";
+import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
-type AddRealCompanyFormProps = {
-  closeDrawer: () => void; // Add this prop
-};
+const AddRealCompanyForm = () => {
+  const { setDrawerOpen, editData, resetEditData } = useCompanyContext();
 
-const AddRealCompanyForm = ({ closeDrawer }: AddRealCompanyFormProps) => {
   const form = useForm<z.infer<typeof realCompanySchema>>({
     resolver: zodResolver(realCompanySchema),
     defaultValues: {
-      name: "",
-      email: "",
-      phone: "",
+      name: editData?.name || "",
+      email: editData?.email || "",
+      phone: editData?.phone || "",
     },
   });
 
+  useEffect(() => {
+    form.reset({
+      name: editData?.name || "",
+      email: editData?.email || "",
+      phone: editData?.phone || "",
+    });
+  }, [editData, form]);
+
   const queryClient = useQueryClient();
 
-  const mutation = useMutation({
+  const mutationAdd = useMutation({
     mutationFn: addRealCompany,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["real-companies"] });
       toast.success("კომპანია დაემატა წარმატებით");
-      closeDrawer(); // Close the drawer when successful
+      form.reset();
+      setDrawerOpen(false);
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+        form.reset();
+      }
+    },
+  });
+
+  const mutationEdit = useMutation({
+    mutationFn: ({
+      id,
+      ...values
+    }: { id: string } & z.infer<typeof realCompanySchema>) =>
+      editRealCompany(id, values),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["real-companies"] });
+      toast.success("კომპანიის მონაცემები განახლდა წარმატებით");
+      resetEditData();
+      setDrawerOpen(false);
     },
     onError: (error) => {
       if (error instanceof Error) {
@@ -50,7 +78,11 @@ const AddRealCompanyForm = ({ closeDrawer }: AddRealCompanyFormProps) => {
   });
 
   const onSubmit = async (values: z.infer<typeof realCompanySchema>) => {
-    mutation.mutate(values);
+    if (!editData) {
+      mutationAdd.mutate(values);
+    } else {
+      mutationEdit.mutate({ id: editData.id, ...values });
+    }
   };
 
   return (
@@ -108,8 +140,13 @@ const AddRealCompanyForm = ({ closeDrawer }: AddRealCompanyFormProps) => {
             </FormItem>
           )}
         />
-        <Button className="w-full sm:w-3/4 md:w-1/2 lg:w-1/3 xl:w-1/4 mx-auto">
-          დამატება
+
+        <Button
+          variant="outline"
+          className="w-full sm:w-3/4 md:w-1/2 lg:w-1/3 xl:w-1/4 mx-auto"
+          type="submit"
+        >
+          {editData ? "ჩასწორება" : "დამატება"}
         </Button>
       </form>
     </Form>

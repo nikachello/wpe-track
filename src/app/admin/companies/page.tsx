@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import AddRealCompanyDrawer from "@/components/global/admin/AddRealCompanyDrawer";
 import {
   Table,
@@ -10,23 +10,60 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getRealCompanies } from "@/actions/admin-actions";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { deleteRealCompany, getRealCompanies } from "@/actions/admin-actions";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { TableSkeleton } from "@/components/global/drivers-table/TableSkeleton";
+import { Button } from "@/components/ui/button";
+import { Loader, Pencil, X } from "lucide-react";
+import { toast } from "sonner";
+import {
+  CompanyProvider,
+  useCompanyContext,
+} from "@/context/RealCompanyContext";
 
-type Props = {};
+const CompaniesTable = () => {
+  const queryClient = useQueryClient();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const { setDrawerOpen, setEditData } = useCompanyContext();
 
-const Page = (props: Props) => {
-  const { isPending, error, data, isFetching } = useQuery({
+  const { isPending, error, data } = useQuery({
     queryKey: ["real-companies"],
     queryFn: getRealCompanies,
   });
 
-  if (isPending) return <TableSkeleton />;
-  if (error) return "დაფიქსირდა შეცდომა, სცადეთ ახლიდან";
+  const mutation = useMutation({
+    mutationFn: deleteRealCompany,
+    onMutate: (id: string) => {
+      setLoadingId(id); // Set loading state for this specific row
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["real-companies"] });
+      toast.success("კომპანია წაიშალა წარმატებით");
+    },
+    onError: (error) => {
+      if (error instanceof Error) {
+        toast.error(error.message);
+      }
+    },
+    onSettled: () => {
+      setLoadingId(null);
+    },
+  });
+
+  if (isPending) {
+    return <TableSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <p className="text-red-500 text-center">
+        დაფიქსირდა შეცდომა, სცადეთ ახლიდან
+      </p>
+    );
+  }
 
   return (
-    <div className="flex flex-col gap-10">
+    <>
       <Table className="w-fit m-auto">
         <TableCaption>კომპანიების სია</TableCaption>
         <TableHeader>
@@ -34,22 +71,70 @@ const Page = (props: Props) => {
             <TableHead>სახელი</TableHead>
             <TableHead>ნომერი</TableHead>
             <TableHead>მეილი</TableHead>
+            <TableHead>მოქმედება</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {data.map((company) => (
-            <TableRow key={company.id}>
+          {data?.map((company) => (
+            <TableRow className="text-center" key={company.id}>
               <TableCell>{company.name}</TableCell>
               <TableCell>{company.phone}</TableCell>
               <TableCell>{company.email}</TableCell>
+              <TableCell>
+                <Button
+                  disabled={loadingId === company.id}
+                  onClick={() => mutation.mutate(company.id)}
+                  variant="ghost"
+                >
+                  {loadingId === company.id ? (
+                    <Loader className="animate-spin" />
+                  ) : (
+                    <X />
+                  )}
+                </Button>
+                <Button
+                  disabled={loadingId === company.id}
+                  onClick={() => {
+                    setEditData({
+                      id: company.id,
+                      email: company.email,
+                      phone: company.phone,
+                      name: company.name,
+                    });
+                    setDrawerOpen(true);
+                  }}
+                  variant="ghost"
+                >
+                  <Pencil />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
       <div className="m-auto">
+        <Button
+          variant="outline"
+          onClick={() => {
+            setEditData(null);
+            setDrawerOpen(true);
+          }}
+        >
+          კომპანიის დამატება
+        </Button>
+      </div>
+    </>
+  );
+};
+
+const Page = () => {
+  return (
+    <CompanyProvider>
+      <div className="flex flex-col gap-10">
+        <CompaniesTable />
         <AddRealCompanyDrawer />
       </div>
-    </div>
+    </CompanyProvider>
   );
 };
 

@@ -1,6 +1,5 @@
 import { headers } from "next/headers";
 import { auth } from "./auth";
-import { redirect } from "next/navigation";
 import { User } from "@prisma/client";
 
 export const getUser = async () => {

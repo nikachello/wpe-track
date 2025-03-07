@@ -13,7 +13,7 @@ export async function getOptionalUser(): Promise<SessionUser | null> {
       headers: await headers(),
     });
     return session?.user as SessionUser | null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

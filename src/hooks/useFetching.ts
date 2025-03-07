@@ -20,6 +20,11 @@ const useMutationWithInvalidation = <T, U>(
   });
 };
 
+// No-op function with proper generic typing
+const createNoopFunction = <T>(): ((params: T) => Promise<void>) => {
+  return () => Promise.resolve();
+};
+
 export const useCRUD = <T, U, V>(
   key: string,
   fetchFn: () => Promise<T>,
@@ -28,12 +33,21 @@ export const useCRUD = <T, U, V>(
 ) => {
   const { data = [], isLoading } = useFetchData<T>(key, fetchFn);
 
-  const createMutation = createFn
-    ? useMutationWithInvalidation<U, void>(createFn, [key])
-    : null;
-  const deleteMutation = deleteFn
-    ? useMutationWithInvalidation<V, void>(deleteFn, [key])
-    : null;
+  // Always call hooks, but provide properly typed no-op functions if the actual functions aren't provided
+  const createMutation = useMutationWithInvalidation<U, void>(
+    createFn || createNoopFunction<U>(),
+    [key]
+  );
 
-  return { data, isLoading, createMutation, deleteMutation };
+  const deleteMutation = useMutationWithInvalidation<V, void>(
+    deleteFn || createNoopFunction<V>(),
+    [key]
+  );
+
+  return {
+    data,
+    isLoading,
+    createMutation: createFn ? createMutation : null,
+    deleteMutation: deleteFn ? deleteMutation : null,
+  };
 };

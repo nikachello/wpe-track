@@ -1,5 +1,5 @@
+"use client";
 import AddRealCompanyForm from "@/components/forms/admin/AddRealCompanyForm";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Drawer,
@@ -7,28 +7,27 @@ import {
   DrawerDescription,
   DrawerHeader,
   DrawerTitle,
-  DrawerTrigger,
 } from "@/components/ui/drawer";
-import React, { useState } from "react";
+import { useCompanyContext } from "@/context/RealCompanyContext";
+import React from "react";
 
-const AddRealCompanyDrawer = () => {
-  const [open, setOpen] = useState(false);
+const AddRealCompanyDrawer: React.FC = () => {
+  const { drawerOpen, setDrawerOpen, editData } = useCompanyContext();
 
   return (
-    <Drawer open={open} onOpenChange={setOpen}>
-      <DrawerTrigger asChild>
-        <Button onClick={() => setOpen(true)}>კომპანიის დამატება</Button>
-      </DrawerTrigger>
+    <Drawer open={drawerOpen} onOpenChange={setDrawerOpen}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle className="text-center">დაამატე კომპანია</DrawerTitle>
+          <DrawerTitle className="text-center">
+            {editData ? "ჩასწორება" : "დაამატე კომპანია"}
+          </DrawerTitle>
           <DrawerDescription></DrawerDescription>
         </DrawerHeader>
         <Card className="m-auto w-1/2 mx-auto my-5">
           <CardHeader>
             <CardTitle>კომპანიის მონაცემები</CardTitle>
             <CardContent className="w-full p-4">
-              <AddRealCompanyForm closeDrawer={() => setOpen(false)} />
+              <AddRealCompanyForm />
             </CardContent>
           </CardHeader>
         </Card>

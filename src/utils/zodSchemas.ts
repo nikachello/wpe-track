@@ -1,4 +1,5 @@
 import { z } from "zod";
+import validator from "validator";
 
 export const signInSchema = z.object({
   email: z.string().email({ message: "შეიყვანეთ სწორი ელ-ფოსტა" }),
@@ -13,6 +14,6 @@ export const signUpSchema = z.object({
 
 export const realCompanySchema = z.object({
   name: z.string().min(1, "შეიყვანეთ კომპანიის სახელი"),
-  phone: z.string().min(1, "ნომერი აუცილებელია"),
+  phone: z.string().refine(validator.isMobilePhone),
   email: z.string().email({ message: "შეიყვანეთ სწორი ელ ფოსტა" }),
 });

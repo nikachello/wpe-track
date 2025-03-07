@@ -8,12 +8,11 @@ import { Form } from "../../ui/form";
 import { Button } from "../../ui/button";
 import { authClient } from "@/utils/auth-client";
 import { signUpSchema } from "@/utils/zodSchemas";
-import { redirect, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { AuthFormField } from "./AuthFormField";
 
 const SignupForm = () => {
   const [pending, setPending] = useState(false);
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof signUpSchema>>({
     resolver: zodResolver(signUpSchema),

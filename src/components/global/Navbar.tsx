@@ -22,7 +22,6 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Separator } from "../ui/separator";
 import { Menu } from "lucide-react";
 
 const NavLinks = {
@@ -51,7 +50,7 @@ const Navbar = async () => {
 
   return (
     <div>
-      <nav className="flex items-center justify-between py-5">
+      <nav className="flex items-center justify-between py-5 text-sm">
         <div className="flex flex-row gap-2">
           <Logo />
         </div>
@@ -71,10 +70,18 @@ const Navbar = async () => {
                   </SheetTitle>
 
                   <NavigationMenu>
-                    <NavigationMenuList className="flex flex-col">
+                    <NavigationMenuList className="flex flex-col text-sm">
                       {navLinks.map((navItem) => (
-                        <NavigationMenuItem key={navItem.href}>
-                          <Link href={navItem.href} legacyBehavior passHref>
+                        <NavigationMenuItem
+                          className="text-sm"
+                          key={navItem.href}
+                        >
+                          <Link
+                            className="text-sm"
+                            href={navItem.href}
+                            legacyBehavior
+                            passHref
+                          >
                             <NavigationMenuLink
                               className={navigationMenuTriggerStyle()}
                             >
@@ -115,12 +122,17 @@ const Navbar = async () => {
           </Sheet>
         </div>
 
-        <div className="hidden lg:flex items-center gap-5">
+        <div className="hidden lg:flex items-center gap-5 text-sm mb-4">
           <NavigationMenu>
             <NavigationMenuList>
               {navLinks.map((navItem) => (
-                <NavigationMenuItem key={navItem.href}>
-                  <Link href={navItem.href} legacyBehavior passHref>
+                <NavigationMenuItem className="text-sm" key={navItem.href}>
+                  <Link
+                    className="text-xs"
+                    href={navItem.href}
+                    legacyBehavior
+                    passHref
+                  >
                     <NavigationMenuLink
                       className={navigationMenuTriggerStyle()}
                     >
