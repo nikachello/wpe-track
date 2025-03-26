@@ -61,7 +61,7 @@ export const DriversTable: React.FC = () => {
         console.error("მძღოლის შეცვლისას პრობლემაა:", error);
         const errorMessage =
           error instanceof Error ? error.message : "დაფიქსირდა უცნობი შეცდომა";
-        toast.error(errorMessage);
+        toast.error("არ ხართ მენეჯერი ან არ გაქვთ საკმარისი უფლება");
       }
       return;
     }
@@ -93,7 +93,9 @@ export const DriversTable: React.FC = () => {
       } catch (error) {
         console.error("მძღოლის შეცვლისას პრობლემაა:", error);
         toast.error(
-          error instanceof Error ? error.message : "დაფიქსირდა უცნობი შეცდომა"
+          error instanceof Error
+            ? "არ ხართ მენეჯერი ან არ გაქვთ საკმარისი უფლება"
+            : "დაფიქსირდა უცნობი შეცდომა"
         );
       }
     }
