@@ -67,7 +67,12 @@ const LoginForm = () => {
             type="password"
           />
 
-          <Button disabled={pending} type="submit" className="w-full">
+          <Button
+            size="sm"
+            disabled={pending}
+            type="submit"
+            className="w-1/2 m-auto"
+          >
             {pending ? "დაელოდეთ..." : "შესვლა"}
           </Button>
         </div>

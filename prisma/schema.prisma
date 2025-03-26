@@ -13,19 +13,23 @@ enum UserType {
   DISPATCHER
 }
 
-model Company {
-  id      String             @id @default(cuid())
-  name    String
-  drivers DriversOnCompany[]
+enum PaymentType {
+  CASH
+  DAYS_2
+  DAYS_3
+  DAYS_5
+  DAYS_15
+  DAYS_20
+  DAYS_30
+  SUPERPAY
 }
 
-model RealCompany {
-  id String @id @default(cuid())
-  name String
-  phone String
-  email String
-  
+enum isInsuranceCompany {
+  კი
+  არა
 }
+
+
 
 model Driver {
   id          String             @id @default(cuid())
@@ -33,7 +37,39 @@ model Driver {
   lastName    String
   phoneNumber String?
   companies   DriversOnCompany[]
+
+  assignableToCompanies AssignableDrivers[]
 }
+
+model AssignableDrivers {
+  driverId  String
+  companyId String
+  driver    Driver  @relation(fields: [driverId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id])
+
+  @@id([driverId, companyId]) // Composite primary key
+}
+
+model Company {
+  id             String     @id @default(cuid())
+  name           String
+  realCompanyId  String     @unique
+  realCompany    RealCompany @relation(fields: [realCompanyId], references: [id])
+  drivers        DriversOnCompany[]
+  possibleDrivers AssignableDrivers[]
+}
+
+model RealCompany {
+  id               String   @id @default(cuid())
+  name             String
+  phone            String
+  email            String
+  isInsuranceCompany Boolean @default(false)
+  loads            Load[]
+  company          Company?
+}
+
+
 
 model DriversOnCompany {
   company   Company @relation(fields: [companyId], references: [id])
@@ -45,6 +81,12 @@ model DriversOnCompany {
   spot Int // New field to track driver slots
 
   createdAt DateTime? @default(now())
+
+  dispatcherId String
+  dispatcher Dispatcher? @relation(fields: [dispatcherId], references: [id])
+
+  superId String?
+
 
   // Ensures each spot in a company is unique
   // Ensures each driver is assigned only once per company
@@ -58,8 +100,11 @@ model Dispatcher {
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @unique
+  loads Load[]
 
   drivers RealDriver[]
+
+  insuranceLoads DriversOnCompany[]
 }
 
 model RealDriver {
@@ -68,9 +113,11 @@ model RealDriver {
   vehicle     String
   phoneNumber String
 
+  dispatcherId String
   dispatcher Dispatcher @relation(fields: [dispatcherId], references: [id])
 
-  dispatcherId String
+  loads Load[]
+
 }
 
 model User {
@@ -90,6 +137,34 @@ model User {
   accounts      Account[]
 
   @@map("user")
+}
+
+model Load {
+  id String @id @default(uuid())
+  superId String
+  paymentType PaymentType
+  vin String
+  pickupAddress String
+  deliveryAddress String
+  price String
+  
+
+  dispatcherId String
+  dispatcher Dispatcher @relation(fields: [dispatcherId], references: [id])
+
+  realDriverId String
+  driver RealDriver @relation(fields: [realDriverId], references: [id])
+
+  realCompanyId String
+  company RealCompany @relation(fields: [realCompanyId], references: [id])
+
+  pickupDate DateTime?
+  deliveryDate DateTime?
+
+  isPaymentReceived Boolean
+
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model Session {

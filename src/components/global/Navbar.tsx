@@ -7,7 +7,7 @@ import { auth } from "@/utils/auth";
 import { headers } from "next/headers";
 import { Button } from "../ui/button";
 import { redirect } from "next/navigation";
-import { UserType } from "@prisma/client";
+import { User, UserType } from "@prisma/client";
 import {
   NavigationMenu,
   NavigationMenuItem,
@@ -24,29 +24,99 @@ import {
 } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 
-const NavLinks = {
-  dispatcher: [
-    { href: "/mydrivers", label: "მძღოლები" },
-    { href: "/myloads", label: "ტვირთები" },
-    { href: "/myanalytics", label: "სტატისტიკა" },
+type NavItem = {
+  href: string;
+  label: string;
+};
+
+type SessionUser = User &
+  User & {
+    userType: "ADMIN" | "USER";
+  };
+
+interface AuthButtonsProps {
+  user: SessionUser | null;
+}
+
+// Navigation links organized by user type
+const NAV_LINKS = {
+  [UserType.DISPATCHER]: [
+    { href: "/drivers-tracking", label: "თრექინგი" },
+    { href: "#", label: "მძღოლები" },
+    { href: "#", label: "ტვირთები" },
+    { href: "#", label: "სტატისტიკა" },
   ],
-  admin: [
+  [UserType.ADMIN]: [
+    { href: "/drivers-tracking", label: "თრექინგი" },
     { href: "/admin/drivers", label: "მძღოლები" },
     { href: "/admin/dispatchers", label: "დისპეტჩერები" },
     { href: "/admin/statistics", label: "სტატისტიკა" },
     { href: "/admin/companies", label: "კომპანიები" },
+    { href: "/admin/insurance", label: "დაზღვევა" },
   ],
+};
+
+// Sign out form component to avoid duplication
+const SignOutForm = () => {
+  return (
+    <form
+      action={async () => {
+        "use server";
+        await auth.api.signOut({
+          headers: await headers(),
+        });
+        redirect("/login");
+      }}
+    >
+      <Button type="submit" variant="destructive">
+        გასვლა
+      </Button>
+    </form>
+  );
+};
+
+interface NavLinksProps {
+  links: NavItem[];
+  className?: string;
+}
+
+// Navigation links component to avoid duplication
+const NavLinks = ({ links, className = "" }: NavLinksProps) => {
+  return (
+    <NavigationMenu>
+      <NavigationMenuList className={className}>
+        {links.map((navItem) => (
+          <NavigationMenuItem key={navItem.href}>
+            <Link href={navItem.href} legacyBehavior passHref>
+              <NavigationMenuLink
+                className={`${navigationMenuTriggerStyle()} text-sm`}
+              >
+                {navItem.label}
+              </NavigationMenuLink>
+            </Link>
+          </NavigationMenuItem>
+        ))}
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+};
+
+// Auth buttons component to avoid duplication
+const AuthButtons = ({ user }: AuthButtonsProps) => {
+  return user ? (
+    <div className="flex items-center gap-4">
+      <SignOutForm />
+    </div>
+  ) : (
+    <Link href="/login" className="btn btn-primary">
+      შესვლა
+    </Link>
+  );
 };
 
 const Navbar = async () => {
   const user = await getOptionalUser();
-
-  const navLinks =
-    user?.userType === UserType.ADMIN
-      ? NavLinks.admin
-      : user?.userType === UserType.DISPATCHER
-      ? NavLinks.dispatcher
-      : [];
+  const navLinks = user?.userType ? NAV_LINKS[user.userType] || [] : [];
 
   return (
     <div>
@@ -55,6 +125,7 @@ const Navbar = async () => {
           <Logo />
         </div>
 
+        {/* Mobile Navigation */}
         <div className="lg:hidden">
           <Sheet>
             <SheetTrigger asChild>
@@ -68,103 +139,25 @@ const Navbar = async () => {
                   <SheetTitle className="mt-4">
                     გამარჯობა, <span className="font-bold">{user?.name}</span>
                   </SheetTitle>
-
-                  <NavigationMenu>
-                    <NavigationMenuList className="flex flex-col text-sm">
-                      {navLinks.map((navItem) => (
-                        <NavigationMenuItem
-                          className="text-sm"
-                          key={navItem.href}
-                        >
-                          <Link
-                            className="text-sm"
-                            href={navItem.href}
-                            legacyBehavior
-                            passHref
-                          >
-                            <NavigationMenuLink
-                              className={navigationMenuTriggerStyle()}
-                            >
-                              {navItem.label}
-                            </NavigationMenuLink>
-                          </Link>
-                        </NavigationMenuItem>
-                      ))}
-                    </NavigationMenuList>
-                  </NavigationMenu>
+                  <NavLinks
+                    links={navLinks}
+                    className="flex flex-col text-xs"
+                  />
                 </div>
                 <div className="mt-auto flex flex-row gap-4">
                   <ThemeToggle />
-                  {user ? (
-                    <div className="flex items-center gap-4">
-                      <form
-                        action={async () => {
-                          "use server";
-                          await auth.api.signOut({
-                            headers: await headers(),
-                          });
-                          redirect("/login");
-                        }}
-                      >
-                        <Button type="submit" variant="destructive">
-                          გასვლა
-                        </Button>
-                      </form>
-                    </div>
-                  ) : (
-                    <Link href="/login" className="btn btn-primary">
-                      შესვლა
-                    </Link>
-                  )}
+                  <AuthButtons user={user} />
                 </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
-        <div className="hidden lg:flex items-center gap-5 text-sm mb-4">
-          <NavigationMenu>
-            <NavigationMenuList>
-              {navLinks.map((navItem) => (
-                <NavigationMenuItem className="text-sm" key={navItem.href}>
-                  <Link
-                    className="text-xs"
-                    href={navItem.href}
-                    legacyBehavior
-                    passHref
-                  >
-                    <NavigationMenuLink
-                      className={navigationMenuTriggerStyle()}
-                    >
-                      {navItem.label}
-                    </NavigationMenuLink>
-                  </Link>
-                </NavigationMenuItem>
-              ))}
-            </NavigationMenuList>
-          </NavigationMenu>
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center gap-5 text-xs mb-4">
+          <NavLinks links={navLinks} />
           <ThemeToggle />
-          {user ? (
-            <div className="flex items-center gap-4">
-              <form
-                action={async () => {
-                  "use server";
-                  await auth.api.signOut({
-                    headers: await headers(),
-                  });
-                  redirect("/login");
-                }}
-              >
-                <Button type="submit" variant="destructive">
-                  გასვლა
-                </Button>
-              </form>
-            </div>
-          ) : (
-            <Link href="/login" className="btn btn-primary">
-              შესვლა
-            </Link>
-          )}
+          <AuthButtons user={user} />
         </div>
       </nav>
     </div>

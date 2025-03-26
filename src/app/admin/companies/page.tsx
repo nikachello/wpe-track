@@ -20,6 +20,7 @@ import {
   CompanyProvider,
   useCompanyContext,
 } from "@/context/RealCompanyContext";
+import { Badge } from "@/components/ui/badge";
 
 const CompaniesTable = () => {
   const queryClient = useQueryClient();
@@ -71,6 +72,7 @@ const CompaniesTable = () => {
             <TableHead>სახელი</TableHead>
             <TableHead>ნომერი</TableHead>
             <TableHead>მეილი</TableHead>
+            <TableHead>დაზღვევა</TableHead>
             <TableHead>მოქმედება</TableHead>
           </TableRow>
         </TableHeader>
@@ -80,6 +82,13 @@ const CompaniesTable = () => {
               <TableCell>{company.name}</TableCell>
               <TableCell>{company.phone}</TableCell>
               <TableCell>{company.email}</TableCell>
+              <TableCell>
+                {company.isInsuranceCompany ? (
+                  <Badge variant="destructive">კი</Badge>
+                ) : (
+                  <Badge variant="default">არა</Badge>
+                )}
+              </TableCell>
               <TableCell>
                 <Button
                   disabled={loadingId === company.id}
@@ -100,6 +109,7 @@ const CompaniesTable = () => {
                       email: company.email,
                       phone: company.phone,
                       name: company.name,
+                      isInsuranceCompany: company.isInsuranceCompany,
                     });
                     setDrawerOpen(true);
                   }}

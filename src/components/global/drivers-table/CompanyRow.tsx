@@ -18,8 +18,17 @@ export const CompanyRow: React.FC<CompanyRowProps> = ({
   onDriverChange,
   isLoading,
 }) => {
+  // const getAvailableDrivers = (companyDriverIds: string[]) =>
+  //   drivers.filter((driver) => !companyDriverIds.includes(driver.id));
+
+  const assignableDriverIds = company.possibleDrivers.map((ad) => ad.driverId);
+
   const getAvailableDrivers = (companyDriverIds: string[]) =>
-    drivers.filter((driver) => !companyDriverIds.includes(driver.id));
+    drivers.filter(
+      (driver) =>
+        assignableDriverIds.includes(driver.id) &&
+        !companyDriverIds.includes(driver.id)
+    );
 
   return (
     <TableRow>
@@ -33,9 +42,14 @@ export const CompanyRow: React.FC<CompanyRowProps> = ({
           : null;
         const companyDriverIds = company.drivers.map((d) => d.driverId);
         const availableDrivers = getAvailableDrivers(companyDriverIds);
+        const superId = assignedDriver?.superId;
 
         return (
           <TableCell key={spotIndex}>
+            <div className="text-sm font-medium text-gray-500 mb-1">
+              {superId}
+            </div>{" "}
+            {/* Display superId above DriverSelect */}
             <DriverSelect
               currentDriver={currentDriver || null}
               company={company}

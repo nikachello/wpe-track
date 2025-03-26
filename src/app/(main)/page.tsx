@@ -1,9 +1,5 @@
-import { DriversTable } from "@/components/global/drivers-table/DriversTable";
+import { redirect } from "next/navigation";
 
-export default async function Home() {
-  return (
-    <div>
-      <DriversTable />
-    </div>
-  );
+export default function Home() {
+  redirect("/drivers-tracking"); // Change this to your target page
 }

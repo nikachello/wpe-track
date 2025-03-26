@@ -31,11 +31,11 @@ const AuthFormWrapper: React.FC<AuthFormWrapperProps> = ({
       <Card>
         <CardHeader className="text-center">
           <CardTitle>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          <CardDescription className="text-xs">{description}</CardDescription>
         </CardHeader>
         <CardContent>{formComponent}</CardContent>
         <CardFooter className="flex justify-center">
-          <p className="flex flex-row gap-2 text-sm text-muted-foreground">
+          <p className="flex flex-row gap-2 text-xs text-muted-foreground">
             {linkQuestion}
             <Link className="text-primary hover:underline" href={linkHref}>
               {linkText}

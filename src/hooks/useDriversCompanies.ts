@@ -4,6 +4,7 @@ import {
   getCompanies,
   assignDriverToCompany,
   removeDriverFromCompany,
+  getAllAssignableDrivers,
 } from "@/actions/actions";
 
 // Fetch Data Hook
@@ -40,12 +41,22 @@ export const useDriversCompanies = () => {
     getCompanies
   );
 
+  const { data: relations = [] } = useFetchData(
+    "relations",
+    getAllAssignableDrivers
+  );
+
   // Mutations
   const assignDriverMutation = useMutationWithInvalidation<
-    { driverId: string; companyId: string; spot: number },
-    { companyId: string; driverId: string; spot: number }
-  >(({ driverId, companyId, spot }) =>
-    assignDriverToCompany(driverId, companyId, spot)
+    { driverId: string; companyId: string; spot: number; superId: string },
+    {
+      companyId: string;
+      driverId: string;
+      spot: number;
+      superId: string | null;
+    }
+  >(({ driverId, companyId, spot, superId }) =>
+    assignDriverToCompany(driverId, companyId, spot, superId)
   );
 
   const removeDriverMutation = useMutationWithInvalidation<
@@ -60,5 +71,6 @@ export const useDriversCompanies = () => {
     companiesLoading,
     assignDriverMutation,
     removeDriverMutation,
+    relations,
   };
 };

@@ -75,7 +75,7 @@ const SignupForm = () => {
             type="password"
           />
 
-          <Button disabled={pending} type="submit" className="w-full">
+          <Button disabled={pending} type="submit" className="w-1/2 m-auto">
             {pending ? "დაელოდეთ..." : "რეგისტრაცია"}
           </Button>
         </div>
