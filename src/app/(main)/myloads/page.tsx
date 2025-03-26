@@ -1,4 +1,3 @@
-// app/loads/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,10 +10,10 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Load } from "@prisma/client";
 import { LoadsDataTable } from "./data-table";
 import LoadDrawer from "@/components/global/loads/LoadDrawer";
 import { getLoads } from "@/actions/actions";
+import { Load } from "./data-table";
 
 export default function LoadsPage() {
   const [loads, setLoads] = useState<Load[]>([]);
@@ -25,7 +24,7 @@ export default function LoadsPage() {
     const fetchLoads = async () => {
       try {
         const loads = await getLoads();
-        setLoads(loads);
+        setLoads(loads as Load[]);
       } catch (error) {
         console.error("Error fetching loads:", error);
       } finally {

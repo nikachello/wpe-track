@@ -1,4 +1,3 @@
-// app/loads/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -11,10 +10,9 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { Load } from "@prisma/client";
 import LoadDrawer from "@/components/global/loads/LoadDrawer";
 import { getLoads } from "@/actions/actions";
-import { LoadsDataTable } from "@/app/(main)/myloads/data-table";
+import { Load, LoadsDataTable } from "@/app/(main)/myloads/data-table";
 
 export default function LoadsPage() {
   const [loads, setLoads] = useState<Load[]>([]);
@@ -25,7 +23,7 @@ export default function LoadsPage() {
     const fetchLoads = async () => {
       try {
         const loads = await getLoads();
-        setLoads(loads);
+        setLoads(loads as Load[]);
       } catch (error) {
         console.error("Error fetching loads:", error);
       } finally {
@@ -40,7 +38,9 @@ export default function LoadsPage() {
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">დისპეჩერები</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            ტვირთების კონტროლი
+          </h1>
           <p className="text-muted-foreground">
             ნახეთ და აკონტროლეთ თქვენი გამომუშავებული თანხა
           </p>

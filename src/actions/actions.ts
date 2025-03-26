@@ -185,32 +185,39 @@ export const getLoads = async () => {
   try {
     const loads = await prisma.load.findMany({
       include: {
-        dispatcher: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        driver: {
-          select: {
-            id: true,
-            name: true,
-            vehicle: true,
-            phoneNumber: true,
-          },
-        },
-        company: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            email: true,
-          },
-        },
+        dispatcher: true,
+        driver: true,
+        company: true,
       },
     });
 
-    return loads;
+    // Transform the loads to match the Load type
+    return loads.map((load) => ({
+      ...load,
+      dispatcher: load.dispatcher
+        ? {
+            id: load.dispatcher.id,
+            name: load.dispatcher.name,
+          }
+        : { id: "", name: "Unknown" },
+      driver: load.driver
+        ? {
+            id: load.driver.id,
+            name: load.driver.name,
+            vehicle: load.driver.vehicle || "",
+            phoneNumber: load.driver.phoneNumber || "",
+          }
+        : { id: "", name: "Unassigned", vehicle: "", phoneNumber: "" },
+      company: load.company
+        ? {
+            id: load.company.id,
+            name: load.company.name,
+            phone: load.company.phone || "",
+            email: load.company.email || "",
+          }
+        : undefined,
+      price: load.price.toString(), // Ensure price is a string
+    }));
   } catch (error) {
     console.error("Error fetching loads:", error);
     throw new Error("Error fetching loads");

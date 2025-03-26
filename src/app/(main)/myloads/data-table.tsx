@@ -36,47 +36,16 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
+import { Prisma } from "@prisma/client";
 
-// Define the Load type based on your Prisma schema
-export type Load = {
-  id: string;
-  paymentType:
-    | "CASH"
-    | "DAYS_2"
-    | "DAYS_3"
-    | "DAYS_5"
-    | "DAYS_15"
-    | "DAYS_20"
-    | "DAYS_30"
-    | "SUPERPAY";
-  vin: string;
-  pickupAddress: string;
-  deliveryAddress: string;
-  price: string;
-  pickupDate: Date | null;
-  deliveryDate: Date | null;
-  isPaymentReceived: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  dispatcher: {
-    id: string;
-    name: string;
+export type Load = Prisma.LoadGetPayload<{
+  include: {
+    dispatcher: true;
+    driver: true;
+    company: true;
   };
-  driver: {
-    id: string;
-    name: string;
-    vehicle: string;
-    phoneNumber: string;
-  };
-  company?: {
-    id: string;
-    name: string;
-    phone: string;
-    email: string;
-  };
-};
+}>;
 
-// Define column configurations
 export const columns: ColumnDef<Load>[] = [
   {
     id: "select",
@@ -105,11 +74,6 @@ export const columns: ColumnDef<Load>[] = [
     header: "VIN",
     cell: ({ row }) => <div className="font-medium">{row.getValue("vin")}</div>,
   },
-  // {
-  //   accessorKey: "driver.vehicle",
-  //   header: "მანქანა",
-  //   cell: ({ row }) => <div>{row.original.driver.vehicle}</div>,
-  // },
   {
     accessorKey: "company.name",
     header: "კომპანია",
@@ -134,7 +98,6 @@ export const columns: ColumnDef<Load>[] = [
     cell: ({ row }) => {
       const paymentType = row.getValue("paymentType") as string;
 
-      // Create a mapped value for display
       const paymentMap: Record<string, string> = {
         CASH: "ქეში",
         DAYS_2: "2 დღე",
@@ -188,13 +151,6 @@ export const columns: ColumnDef<Load>[] = [
       return format(date, "MMM dd, yyyy");
     },
   },
-  // {
-  //   accessorKey: "createdAt",
-  //   header: "Created",
-  //   cell: ({ row }) => {
-  //     return format(new Date(row.getValue("createdAt")), "MMM dd, yyyy");
-  //   },
-  // },
   {
     id: "actions",
     cell: ({ row }) => {
