@@ -45,6 +45,7 @@ const NAV_LINKS = {
     { href: "#", label: "მძღოლები" },
     { href: "#", label: "ტვირთები" },
     { href: "#", label: "სტატისტიკა" },
+    { href: "/bol-generator", label: "BOL გენერატორი" },
   ],
   [UserType.ADMIN]: [
     { href: "/drivers-tracking", label: "თრექინგი" },
@@ -53,6 +54,7 @@ const NAV_LINKS = {
     { href: "/admin/statistics", label: "სტატისტიკა" },
     { href: "/admin/companies", label: "კომპანიები" },
     { href: "/admin/insurance", label: "დაზღვევა" },
+    { href: "/bol-generator", label: "BOL გენერატორი" },
   ],
 };
 
