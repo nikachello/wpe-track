@@ -2,11 +2,12 @@
 import { auth } from "@/utils/auth";
 import { prisma } from "@/utils/db";
 import { realCompanySchema } from "@/utils/zodSchemas";
-import { UserType } from "@prisma/client";
+import { Prisma, UserType } from "@prisma/client";
 import { headers } from "next/headers";
 import { z } from "zod";
 
-export const getRealCompanies = async () => {
+// Authentication Helper
+async function requireAdminAuth() {
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -19,262 +20,229 @@ export const getRealCompanies = async () => {
     throw new Error("უნდა იყოთ ადმინისტრატორი");
   }
 
+  return session;
+}
+
+// Company Helper Functions
+async function checkDuplicateCompany(
+  name: string,
+  email: string,
+  phone: string,
+  excludeId?: string
+) {
+  const whereClause: any = {
+    OR: [{ name }, { email }, { phone }],
+  };
+
+  if (excludeId) {
+    whereClause.id = { not: excludeId };
+  }
+
+  const existingCompany = await prisma.realCompany.findFirst({
+    where: whereClause,
+  });
+
+  if (existingCompany) {
+    throw new Error(
+      excludeId
+        ? "ასეთი მონაცემები უკვე არსებობს სხვა კომპანიაში"
+        : "ასეთი კომპანია იგივე სახელით, ნომრით ან ელ-ფოსტით უკვე არსებობს"
+    );
+  }
+}
+
+async function validateCompanyData(data: z.infer<typeof realCompanySchema>) {
+  const { name, phone, email, isInsuranceCompany } = data;
+
+  if (!name || !phone || !email || isInsuranceCompany === undefined) {
+    throw new Error("არ არის სრული ინფორმაცია");
+  }
+
+  if (
+    isInsuranceCompany &&
+    (!data.driversAssignable || data.driversAssignable.length === 0)
+  ) {
+    throw new Error("აირჩიეთ დაზღვევის მძღოლები");
+  }
+}
+
+// Updated manageInsuranceCompany with tx
+async function manageInsuranceCompany(
+  realCompanyId: string,
+  name: string,
+  tx: Prisma.TransactionClient,
+  driversAssignable?: string[],
+  shouldDelete?: boolean
+) {
+  const realCompany = await tx.realCompany.findFirst({
+    where: { id: realCompanyId },
+  });
+
+  let company = await tx.company.findFirst({
+    where: { realCompanyId },
+  });
+
+  if (shouldDelete) {
+    if (company?.id) {
+      await tx.driversOnCompany.deleteMany({
+        where: { companyId: company.id },
+      });
+
+      await tx.assignableDrivers.deleteMany({
+        where: { companyId: company.id },
+      });
+
+      await tx.company.delete({
+        where: { realCompanyId },
+      });
+    }
+
+    return;
+  }
+
+  if (!company) {
+    company = await tx.company.create({
+      data: {
+        name,
+        realCompanyId,
+      },
+    });
+  }
+
+  if (company.name !== realCompany?.name) {
+    await tx.company.update({
+      where: {
+        id: company.id,
+      },
+      data: {
+        name,
+      },
+    });
+  }
+
+  await tx.assignableDrivers.deleteMany({
+    where: { companyId: company.id },
+  });
+
+  if (driversAssignable && driversAssignable.length > 0) {
+    await tx.assignableDrivers.createMany({
+      data: driversAssignable.map((driverId) => ({
+        companyId: company.id,
+        driverId,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  return company;
+}
+
+// Server Actions
+export const getRealCompanies = async () => {
+  await requireAdminAuth();
   return await prisma.realCompany.findMany();
 };
 
 export const addRealCompany = async (
   data: z.infer<typeof realCompanySchema>
 ) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    throw new Error("საჭიროა ავტორიზაცია");
-  }
-
-  if (session.user.userType !== UserType.ADMIN) {
-    throw new Error("უნდა იყოთ ადმინისტრატორი");
-  }
+  await requireAdminAuth();
+  await validateCompanyData(data);
 
   const { name, phone, email, isInsuranceCompany, driversAssignable } = data;
 
-  if (!name || !phone || !email || isInsuranceCompany === undefined) {
-    throw new Error("არ არის სრული ინფორმაცია");
-  }
+  await checkDuplicateCompany(name, email, phone);
 
-  // Check if company with same name, email or phone already exists
-  const existingCompany = await prisma.realCompany.findFirst({
-    where: {
-      OR: [{ name: data.name }, { email: data.email }, { phone: data.phone }],
-    },
-  });
-
-  if (existingCompany) {
-    throw new Error(
-      "ასეთი კომპანია იგივე სახელით, ნომრით ან ელ-ფოსტით უკვე არსებობს"
-    );
-  }
-
-  // If the company is an insurance company, ensure drivers are provided before creating any companies
-  if (
-    isInsuranceCompany &&
-    (!driversAssignable || driversAssignable.length === 0)
-  ) {
-    throw new Error("აირჩიეთ დაზღვევის მძღოლები");
-  }
-
-  console.log("data - addRealCompany:", data);
-
-  // Create the real company first
-  const realCompany = await prisma.realCompany.create({
-    data: {
-      name,
-      email,
-      phone,
-      isInsuranceCompany,
-    },
-  });
-
-  // If it's an insurance company, create the company and assign drivers
-  if (isInsuranceCompany) {
-    const company = await prisma.company.create({
+  return await prisma.$transaction(async (tx) => {
+    const realCompany = await tx.realCompany.create({
       data: {
         name,
-        realCompanyId: realCompany.id,
+        email,
+        phone,
+        isInsuranceCompany,
       },
     });
 
-    await prisma.assignableDrivers.createMany({
-      data: driversAssignable!.map((driverId) => ({
-        companyId: company.id,
-        driverId: driverId,
-      })),
-      skipDuplicates: true,
-    });
-  }
+    if (isInsuranceCompany) {
+      await manageInsuranceCompany(
+        realCompany.id,
+        name,
+        tx,
+        driversAssignable,
+        false
+      );
+    }
 
-  return realCompany;
+    return realCompany;
+  });
 };
-
-// const result = await prisma.$transaction(async (prisma) => {
-//   // Create the RealCompany first
-//   const realCompany = await prisma.realCompany.create({
-//     data: {
-//       name,
-//       email,
-//       phone,
-//       isInsuranceCompany,
-//     },
-//   });
-
-//   // Create the Company
-//   const company = await prisma.company.create({
-//     data: {
-//       name,
-//       realCompanyId: realCompany.id,
-//     },
-//   });
-
-//   // If it's an insurance company and drivers are selected
-//   if (
-//     isInsuranceCompany === true &&
-//     driversAssignable &&
-//     driversAssignable.length > 0
-//   ) {
-//     // Create AssignableDrivers records
-//     await prisma.assignableDrivers.createMany({
-//       data: driversAssignable.map((driverId) => ({
-//         companyId: company.id,
-//         driverId: driverId,
-//       })),
-//       // This prevents duplicate entries
-//       skipDuplicates: true,
-//     });
-//   }
-
-//   return realCompany;
-// });
-
-// return result;
 
 export const editRealCompany = async (
   realCompanyId: string,
   data: z.infer<typeof realCompanySchema>
 ) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    throw new Error("საჭიროა ავტორიზაცია");
-  }
-
-  if (session.user.userType !== UserType.ADMIN) {
-    throw new Error("უნდა იყოთ ადმინისტრატორი");
-  }
+  await requireAdminAuth();
 
   if (!realCompanyId) {
     throw new Error("არ არის კომპანიის ID");
   }
 
+  await validateCompanyData(data);
+
   const { name, phone, email, isInsuranceCompany, driversAssignable } = data;
-  if (!name || !phone || !email || isInsuranceCompany === undefined) {
-    throw new Error("არ არის სრული ინფორმაცია");
-  }
 
-  // Check if another company exists with the same name, email, or phone
-  const duplicateCompany = await prisma.realCompany.findFirst({
-    where: {
-      id: { not: realCompanyId }, // Exclude the current company from the check
-      OR: [{ name }, { email }, { phone }],
-    },
-  });
+  await checkDuplicateCompany(name, email, phone, realCompanyId);
 
-  if (duplicateCompany) {
-    throw new Error("ასეთი მონაცემები უკვე არსებობს სხვა კომპანიაში");
-  }
+  return await prisma.$transaction(async (tx) => {
+    if (!isInsuranceCompany) {
+      const company = await tx.company.findFirst({
+        where: { realCompanyId },
+      });
 
-  const updatedCompany = await prisma.realCompany.update({
-    where: { id: realCompanyId },
-    data: {
-      name,
-      phone,
-      email,
-      isInsuranceCompany,
-    },
-  });
+      if (company) {
+        await manageInsuranceCompany(
+          realCompanyId,
+          name,
+          tx,
+          driversAssignable,
+          true
+        );
+      }
+    }
 
-  const associatedCompany = await prisma.company.findFirst({
-    where: {
-      realCompanyId: realCompanyId,
-    },
-  });
-
-  if (isInsuranceCompany === true && associatedCompany) {
-    // Remove existing assignable drivers
-    await prisma.assignableDrivers.deleteMany({
-      where: { companyId: associatedCompany.id },
+    const updatedCompany = await tx.realCompany.update({
+      where: { id: realCompanyId },
+      data: {
+        name,
+        phone,
+        email,
+        isInsuranceCompany,
+      },
     });
 
-    // Add new assignable drivers if any
-    if (driversAssignable && driversAssignable.length > 0) {
-      await prisma.assignableDrivers.createMany({
-        data: driversAssignable.map((driverId) => ({
-          companyId: associatedCompany.id,
-          driverId: driverId,
-        })),
-        skipDuplicates: true,
-      });
+    if (isInsuranceCompany) {
+      await manageInsuranceCompany(
+        realCompanyId,
+        name,
+        tx,
+        driversAssignable,
+        false
+      );
     }
-  }
 
-  return updatedCompany;
-
-  // const result = await prisma.$transaction(async (prisma) => {
-  //   // Update RealCompany
-  //   const updatedRealCompany = await prisma.realCompany.update({
-  //     where: { id: realCompanyId },
-  //     data: {
-  //       name,
-  //       phone,
-  //       email,
-  //       isInsuranceCompany,
-  //     },
-  //   });
-
-  //   // Find associated Company
-  //   const associatedCompany = await prisma.company.findFirst({
-  //     where: { name: name },
-  //   });
-
-  //   console.log("associated company", associatedCompany);
-
-  //   // If it's an insurance company, manage assignable drivers
-  //   if (isInsuranceCompany === true && associatedCompany) {
-  //     // Remove existing assignable drivers
-  //     await prisma.assignableDrivers.deleteMany({
-  //       where: { companyId: associatedCompany.id },
-  //     });
-
-  //     // Add new assignable drivers if any
-  //     if (driversAssignable && driversAssignable.length > 0) {
-  //       await prisma.assignableDrivers.createMany({
-  //         data: driversAssignable.map((driverId) => ({
-  //           companyId: associatedCompany.id,
-  //           driverId: driverId,
-  //         })),
-  //         skipDuplicates: true,
-  //       });
-  //     }
-  //   }
-
-  //   return updatedRealCompany;
-  // });
-
-  // return result;
+    return updatedCompany;
+  });
 };
 
 export const deleteRealCompany = async (realCompanyId: string) => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    throw new Error("საჭიროა ავტორიზაცია");
-  }
-
-  if (session.user.userType !== UserType.ADMIN) {
-    throw new Error("უნდა იყოთ ადმინისტრატორი");
-  }
+  await requireAdminAuth();
 
   if (!realCompanyId) {
     throw new Error("არ არის კომპანიის ID");
   }
 
-  const result = await prisma.$transaction(async (prisma) => {
-    // Find the RealCompany
-    const realCompany = await prisma.realCompany.findUnique({
+  return await prisma.$transaction(async (tx) => {
+    const realCompany = await tx.realCompany.findUnique({
       where: { id: realCompanyId },
     });
 
@@ -282,92 +250,59 @@ export const deleteRealCompany = async (realCompanyId: string) => {
       throw new Error("ასეთი კომპანია არ მოიძებნა");
     }
 
-    // Find associated Company
-    const associatedCompany = await prisma.company.findFirst({
-      where: { realCompanyId: realCompanyId },
+    const associatedCompany = await tx.company.findFirst({
+      where: { realCompanyId },
     });
 
-    // If associated company exists, remove its assignable drivers first
     if (associatedCompany) {
-      await prisma.assignableDrivers.deleteMany({
+      await tx.driversOnCompany.deleteMany({
         where: { companyId: associatedCompany.id },
       });
 
-      // Delete the associated Company
-      await prisma.company.delete({
+      await tx.assignableDrivers.deleteMany({
+        where: { companyId: associatedCompany.id },
+      });
+
+      await tx.company.delete({
         where: { id: associatedCompany.id },
       });
     }
 
-    // Delete the RealCompany
-    await prisma.realCompany.delete({
+    await tx.realCompany.delete({
       where: { id: realCompanyId },
     });
 
     return { message: "კომპანია წარმატებით წაიშალა" };
   });
-
-  return result;
 };
 
 export const getInsuranceDrivers = async () => {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    throw new Error("საჭიროა ავტორიზაცია");
-  }
-
-  if (session.user.userType !== UserType.ADMIN) {
-    throw new Error("უნდა იყოთ ადმინისტრატორი");
-  }
-
+  await requireAdminAuth();
   return await prisma.driver.findMany();
 };
 
 export const getCompanyAssignableDrivers = async (realCompanyId: string) => {
-  console.log("Company id from server", realCompanyId);
+  await requireAdminAuth();
 
-  // Get the session
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-
-  if (!session) {
-    throw new Error("საჭიროა ავტორიზაცია");
+  if (!realCompanyId) {
+    throw new Error("არ არის კომპანიის ID");
   }
 
-  // Fetch company based on realCompanyId
   const company = await prisma.company.findFirst({
-    where: {
-      realCompanyId: realCompanyId,
-    },
+    where: { realCompanyId },
   });
 
-  if (!company) throw new Error("კომპანია ვერ მოიძებნა");
+  if (!company) {
+    throw new Error("კომპანია ვერ მოიძებნა");
+  }
 
-  // Fetch assignable drivers for the company
   const assignableDrivers = await prisma.assignableDrivers.findMany({
-    where: {
-      companyId: company.id,
-    },
-    include: {
-      driver: true, // Include driver details (name, lastName, etc.)
-    },
+    where: { companyId: company.id },
+    include: { driver: true },
   });
 
-  console.log("assignableDrivers from server", assignableDrivers);
-
-  // Map the data into react-select format
-  const reactSelectOptions = assignableDrivers.map((assignableDriver) => {
-    return {
-      value: assignableDriver.driverId, // Unique identifier
-      label: `${assignableDriver.driver.name} ${assignableDriver.driver.lastName}`, // Driver full name
-    };
-  });
-
-  console.log("reactSelectOptions", reactSelectOptions);
-
-  return reactSelectOptions;
+  return assignableDrivers.map((ad) => ({
+    value: ad.driverId,
+    label: `${ad.driver.name} ${ad.driver.lastName}`,
+  }));
 };
