@@ -97,9 +97,11 @@ model DriversOnCompany {
 model Dispatcher {
   id   String @id @default(cuid())
   name String
+  email String?
 
   user   User   @relation(fields: [userId], references: [id])
   userId String @unique
+  percentage String?
   loads Load[]
 
   drivers RealDriver[]
@@ -111,7 +113,9 @@ model RealDriver {
   id          String @id @default(cuid())
   name        String
   vehicle     String
+  trailerSize String?
   phoneNumber String
+  percentage String?
 
   dispatcherId String
   dispatcher Dispatcher @relation(fields: [dispatcherId], references: [id])
@@ -160,6 +164,8 @@ model Load {
 
   pickupDate DateTime?
   deliveryDate DateTime?
+
+  isDelivered Boolean @default(false)
 
   isPaymentReceived Boolean
 

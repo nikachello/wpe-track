@@ -30,7 +30,7 @@ async function checkDuplicateCompany(
   phone: string,
   excludeId?: string
 ) {
-  const whereClause: any = {
+  const whereClause: Prisma.RealCompanyWhereInput = {
     OR: [{ name }, { email }, { phone }],
   };
 

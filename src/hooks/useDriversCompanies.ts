@@ -1,11 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCompanies } from "@/actions/companyActions";
 import {
-  getDrivers,
-  getCompanies,
   assignDriverToCompany,
-  removeDriverFromCompany,
   getAllAssignableDrivers,
-} from "@/actions/actions";
+  getDrivers,
+  removeDriverFromCompany,
+} from "@/actions/driverActions";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 // Fetch Data Hook
 const useFetchData = <T>(key: string, fetchFn: () => Promise<T>) => {
