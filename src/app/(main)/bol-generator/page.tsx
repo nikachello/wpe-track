@@ -11,37 +11,28 @@ import { format } from "date-fns";
 const GLOBAL_PAGE_SIZE_POINTS = 11 * 72;
 
 const coordinates = {
-  orderId: { x: 0.499 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 1.076 * 72 },
-  companyName: { x: 0.499 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 1.838 * 72 },
-  date: { x: 4.294 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 2.014 * 72 },
-  pickupAddress: { x: 0.487 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 3.16 * 72 },
-  deliveryAddress: { x: 4.366 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 3.16 * 72 },
-  vinCode: { x: 1.41 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 4.897 * 72 },
-  model: { x: 5.951 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 4.897 * 72 },
-  make: { x: 6.7 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 4.897 * 72 },
-  weight: { x: 7.338 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 4.897 * 72 },
-  driverPrintedName: { x: 0.936 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 8.327 * 72 },
-  customerPrintedName: {
-    x: 1.045 * 72,
-    y: GLOBAL_PAGE_SIZE_POINTS - 8.497 * 72,
-  },
+  companyName: { x: 1.222 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 1.115 * 72 },
+  dot: { x: 0.986 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 1.67 * 72 },
+  mc: { x: 0.821 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 2.01 * 72 },
+  date: { x: 4.416 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 6.15 * 72 },
+  pickupAddress: { x: 0.389 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 7.65 * 72 },
+  deliveryAddress: { x: 4.432 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 7.65 * 72 },
+  vinCode: { x: 0.375 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 3.551 * 72 },
+  model: { x: 2.613 * 72, y: GLOBAL_PAGE_SIZE_POINTS - 3.551 * 72 },
 };
 
 const Page = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   const [form, setForm] = useState({
-    orderId: "",
     companyName: "",
+    dot: "",
+    mc: "",
     date: "",
     pickupAddress: "",
     deliveryAddress: "",
     vinCode: "",
     model: "",
-    make: "",
-    weight: "",
-    driverPrintedName: "",
-    customerPrintedName: "",
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,7 +64,7 @@ const Page = () => {
         firstPage.drawText(value, {
           x: coordinates[key as keyof typeof coordinates].x,
           y: coordinates[key as keyof typeof coordinates].y,
-          size: 8,
+          size: 14,
           font: helveticaFont,
           color: rgb(0, 0, 0),
         });
@@ -101,15 +92,21 @@ const Page = () => {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            name="orderId"
-            placeholder="Order ID"
-            value={form.orderId}
-            onChange={handleChange}
-          />
-          <Input
             name="companyName"
             placeholder="სტიკერის კომპანია"
             value={form.companyName}
+            onChange={handleChange}
+          />
+          <Input
+            name="dot"
+            placeholder="სტიკერის DOT"
+            value={form.dot}
+            onChange={handleChange}
+          />
+          <Input
+            name="mc"
+            placeholder="სტიკერის MC"
+            value={form.mc}
             onChange={handleChange}
           />
           <DatePicker value={selectedDate} onChange={setSelectedDate} />
@@ -151,45 +148,14 @@ const Page = () => {
           />
           <Input
             name="model"
-            placeholder="Model"
+            placeholder="Year/Model/Make"
             value={form.model}
-            onChange={handleChange}
-          />
-          <Input
-            name="make"
-            placeholder="Make"
-            value={form.make}
-            onChange={handleChange}
-          />
-          <Input
-            name="weight"
-            placeholder="Weight (lbs) ან დატოვეთ ცარიელი"
-            value={form.weight}
             onChange={handleChange}
           />
         </CardContent>
       </Card>
 
       {/* People Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>ხელმოწერები</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Input
-            name="driverPrintedName"
-            placeholder="მძღოლის სახელი"
-            value={form.driverPrintedName}
-            onChange={handleChange}
-          />
-          <Input
-            name="customerPrintedName"
-            placeholder="მომხმარებლის სახელი"
-            value={form.customerPrintedName}
-            onChange={handleChange}
-          />
-        </CardContent>
-      </Card>
 
       {/* Submit Button */}
       <div className="pt-2">

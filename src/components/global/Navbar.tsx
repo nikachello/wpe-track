@@ -42,18 +42,13 @@ interface AuthButtonsProps {
 const NAV_LINKS = {
   [UserType.DISPATCHER]: [
     { href: "/drivers-tracking", label: "თრექინგი" },
-    { href: "#", label: "მძღოლები" },
-    { href: "#", label: "ტვირთები" },
     { href: "#", label: "სტატისტიკა" },
     { href: "/bol-generator", label: "BOL გენერატორი" },
   ],
   [UserType.ADMIN]: [
     { href: "/drivers-tracking", label: "თრექინგი" },
     { href: "/admin/drivers", label: "მძღოლები" },
-    { href: "/admin/dispatchers", label: "დისპეტჩერები" },
-    { href: "/admin/statistics", label: "სტატისტიკა" },
     { href: "/admin/companies", label: "კომპანიები" },
-    { href: "/admin/insurance", label: "დაზღვევა" },
     { href: "/bol-generator", label: "BOL გენერატორი" },
   ],
 };
