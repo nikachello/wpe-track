@@ -64,7 +64,7 @@ const Page = () => {
         firstPage.drawText(value, {
           x: coordinates[key as keyof typeof coordinates].x,
           y: coordinates[key as keyof typeof coordinates].y,
-          size: 14,
+          size: 12,
           font: helveticaFont,
           color: rgb(0, 0, 0),
         });
