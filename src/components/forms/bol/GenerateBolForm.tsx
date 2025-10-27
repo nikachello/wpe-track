@@ -5,7 +5,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/global/DatePicker";
-import { generateBolPdf } from "@/lib/pdf";
 
 export default function BolForm() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();

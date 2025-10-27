@@ -9,7 +9,15 @@ import { headers } from "next/headers";
 
 const inchToPt = (inches: number) => inches * 72;
 
-const coordinatesInInches = {
+type Coordinate = {
+  x: number;
+  yFromTop: number;
+  fontSize?: number;
+  size?: number;
+  fontWeight?: "bold" | "normal";
+};
+
+const coordinatesInInches: Record<string, Coordinate> = {
   loadId: { x: 1.053, yFromTop: 2.478, fontSize: 11, fontWeight: "bold" },
   companyName: { x: 0.405, yFromTop: 0.828, fontSize: 16, fontWeight: "bold" },
   companyStreet: { x: 0.405, yFromTop: 1.049, size: 11 },
@@ -59,7 +67,7 @@ export async function POST(req: Request) {
   };
 
   for (const [key, value] of Object.entries(mergedData)) {
-    const coord = (coordinatesInInches as any)[key];
+    const coord = coordinatesInInches[key as keyof typeof coordinatesInInches];
     if (!coord) continue;
     const text = String(value ?? "").trim();
     if (!text) continue;
