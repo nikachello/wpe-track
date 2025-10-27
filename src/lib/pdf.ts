@@ -3,6 +3,29 @@ import { format } from "date-fns";
 
 const inchToPt = (inches: number) => inches * 72;
 
+export interface BolForm {
+  loadId: string;
+  companyName: string;
+  companyStreet: string;
+  companyCityStateZip: string;
+  mc: string;
+  phone: string;
+  email: string;
+  datePickup: string;
+  dateDelivery: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  vinCode: string;
+  model: string;
+  type: string;
+
+  // computed values from parseAddress
+  pickupStreet?: string;
+  pickupCityStateZip?: string;
+  deliveryStreet?: string;
+  deliveryCityStateZip?: string;
+}
+
 type CoordinateConfig = {
   x: number;
   yFromTop: number;
@@ -31,10 +54,7 @@ const coordinatesInInches: Record<string, CoordinateConfig> = {
   dateDelivery: { x: 1.5, yFromTop: 10.405, fontSize: 8 },
 };
 
-export async function generateBolPdf(
-  form: Record<string, any>,
-  selectedDate?: Date
-) {
+export async function generateBolPdf(form: BolForm, selectedDate?: Date) {
   const response = await fetch("/bol-parsed.pdf");
   const existingPdfBytes = await response.arrayBuffer();
   const pdfDoc = await PDFDocument.load(existingPdfBytes);
