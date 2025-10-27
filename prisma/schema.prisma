@@ -1,11 +1,171 @@
+generator client {
+  provider = "prisma-client-js"
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
+model Driver {
+  id                    String              @id @default(cuid())
+  name                  String
+  lastName              String
+  phoneNumber           String?
+  assignableToCompanies AssignableDrivers[]
+  companies             DriversOnCompany[]
+
+  email String?
+  telegramId String?
+}
+
+model AssignableDrivers {
+  driverId  String
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+  driver    Driver  @relation(fields: [driverId], references: [id])
+
+  @@id([driverId, companyId])
+}
+
+model Company {
+  id              String              @id @default(cuid())
+  name            String
+  realCompanyId   String              @unique
+  possibleDrivers AssignableDrivers[]
+  realCompany     RealCompany         @relation(fields: [realCompanyId], references: [id])
+  drivers         DriversOnCompany[]
+}
+
+model RealCompany {
+  id                 String   @id @default(cuid())
+  name               String
+  phone              String
+  email              String
+  isInsuranceCompany Boolean  @default(false)
+  company            Company?
+  loads              Load[]
+}
+
+model DriversOnCompany {
+  companyId    String
+  driverId     String
+  spot         Int
+  createdAt    DateTime?  @default(now())
+  dispatcherId String
+  superId      String?
+  company      Company    @relation(fields: [companyId], references: [id])
+  dispatcher   Dispatcher @relation(fields: [dispatcherId], references: [id])
+  driver       Driver     @relation(fields: [driverId], references: [id])
+
+  @@id([companyId, spot])
+  @@unique([companyId, driverId])
+}
+
+model Dispatcher {
+  id             String             @id @default(cuid())
+  name           String
+  userId         String             @unique
+  email          String?
+  percentage     String?
+  user           User               @relation(fields: [userId], references: [id])
+  insuranceLoads DriversOnCompany[]
+  loads          Load[]
+  drivers        RealDriver[]
+}
+
+model RealDriver {
+  id           String     @id @default(cuid())
+  name         String
+  vehicle      String
+  phoneNumber  String
+  dispatcherId String
+  trailerSize  String?
+  percentage   String?
+  loads        Load[]
+  dispatcher   Dispatcher @relation(fields: [dispatcherId], references: [id])
+}
+
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  name          String?
+  userType      UserType    @default(DISPATCHER)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  emailVerified Boolean
+  image         String?
+  Dispatcher    Dispatcher?
+  accounts      Account[]
+  sessions      Session[]
+
+  @@map("user")
+}
+
+model Load {
+  id                String      @id @default(uuid())
+  paymentType       PaymentType
+  dispatcherId      String
+  realDriverId      String
+  realCompanyId     String
+  pickupDate        DateTime?
+  deliveryDate      DateTime?
+  isPaymentReceived Boolean
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  deliveryAddress   String
+  pickupAddress     String
+  price             String
+  vin               String
+  superId           String
+  isDelivered       Boolean     @default(false)
+  dispatcher        Dispatcher  @relation(fields: [dispatcherId], references: [id])
+  company           RealCompany @relation(fields: [realCompanyId], references: [id])
+  driver            RealDriver  @relation(fields: [realDriverId], references: [id])
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
 }
 
 enum UserType {
@@ -25,189 +185,6 @@ enum PaymentType {
 }
 
 enum isInsuranceCompany {
-  კი
-  არა
-}
-
-
-
-model Driver {
-  id          String             @id @default(cuid())
-  name        String
-  lastName    String
-  phoneNumber String?
-  companies   DriversOnCompany[]
-
-  assignableToCompanies AssignableDrivers[]
-}
-
-model AssignableDrivers {
-  driverId  String
-  companyId String
-  driver    Driver  @relation(fields: [driverId], references: [id])
-  company   Company @relation(fields: [companyId], references: [id])
-
-  @@id([driverId, companyId]) // Composite primary key
-}
-
-model Company {
-  id             String     @id @default(cuid())
-  name           String
-  realCompanyId  String     @unique
-  realCompany    RealCompany @relation(fields: [realCompanyId], references: [id])
-  drivers        DriversOnCompany[]
-  possibleDrivers AssignableDrivers[]
-}
-
-model RealCompany {
-  id               String   @id @default(cuid())
-  name             String
-  phone            String
-  email            String
-  isInsuranceCompany Boolean @default(false)
-  loads            Load[]
-  company          Company?
-}
-
-
-
-model DriversOnCompany {
-  company   Company @relation(fields: [companyId], references: [id])
-  companyId String
-
-  driver   Driver @relation(fields: [driverId], references: [id])
-  driverId String
-
-  spot Int // New field to track driver slots
-
-  createdAt DateTime? @default(now())
-
-  dispatcherId String
-  dispatcher Dispatcher? @relation(fields: [dispatcherId], references: [id])
-
-  superId String?
-
-
-  // Ensures each spot in a company is unique
-  // Ensures each driver is assigned only once per company
-  @@id([companyId, spot])
-  @@unique([companyId, driverId])
-}
-
-model Dispatcher {
-  id   String @id @default(cuid())
-  name String
-
-  user   User   @relation(fields: [userId], references: [id])
-  userId String @unique
-  loads Load[]
-
-  drivers RealDriver[]
-
-  insuranceLoads DriversOnCompany[]
-}
-
-model RealDriver {
-  id          String @id @default(cuid())
-  name        String
-  vehicle     String
-  phoneNumber String
-
-  dispatcherId String
-  dispatcher Dispatcher @relation(fields: [dispatcherId], references: [id])
-
-  loads Load[]
-
-}
-
-model User {
-  id    String  @id @default(uuid())
-  email String  @unique
-  name  String?
-
-  userType UserType @default(DISPATCHER)
-
-  Dispatcher Dispatcher?
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  emailVerified Boolean
-  image         String?
-  sessions      Session[]
-  accounts      Account[]
-
-  @@map("user")
-}
-
-model Load {
-  id String @id @default(uuid())
-  superId String
-  paymentType PaymentType
-  vin String
-  pickupAddress String
-  deliveryAddress String
-  price String
-  
-
-  dispatcherId String
-  dispatcher Dispatcher @relation(fields: [dispatcherId], references: [id])
-
-  realDriverId String
-  driver RealDriver @relation(fields: [realDriverId], references: [id])
-
-  realCompanyId String
-  company RealCompany @relation(fields: [realCompanyId], references: [id])
-
-  pickupDate DateTime?
-  deliveryDate DateTime?
-
-  isPaymentReceived Boolean
-
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-}
-
-model Session {
-  id        String   @id
-  expiresAt DateTime
-  token     String
-  createdAt DateTime
-  updatedAt DateTime
-  ipAddress String?
-  userAgent String?
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([token])
-  @@map("session")
-}
-
-model Account {
-  id                    String    @id
-  accountId             String
-  providerId            String
-  userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accessToken           String?
-  refreshToken          String?
-  idToken               String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  password              String?
-  createdAt             DateTime
-  updatedAt             DateTime
-
-  @@map("account")
-}
-
-model Verification {
-  id         String    @id
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime?
-  updatedAt  DateTime?
-
-  @@map("verification")
+  YES @map("კი")
+  NO  @map("არა")
 }
