@@ -1,8 +1,4 @@
 -- AlterTable
-ALTER TABLE "Dispatcher" ADD COLUMN     "email" TEXT,
-ADD COLUMN     "percentage" TEXT;
-
--- AlterTable
 ALTER TABLE "Driver" ADD COLUMN     "email" TEXT,
 ADD COLUMN     "telegramId" TEXT;
 
