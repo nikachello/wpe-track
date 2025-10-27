@@ -12,11 +12,10 @@ model Driver {
   name                  String
   lastName              String
   phoneNumber           String?
+  email                 String?
+  telegramId            String? @unique
   assignableToCompanies AssignableDrivers[]
   companies             DriversOnCompany[]
-
-  email String?
-  telegramId String?
 }
 
 model AssignableDrivers {
@@ -80,8 +79,8 @@ model RealDriver {
   vehicle      String
   phoneNumber  String
   dispatcherId String
-  trailerSize  String?
   percentage   String?
+  trailerSize  String?
   loads        Load[]
   dispatcher   Dispatcher @relation(fields: [dispatcherId], references: [id])
 }
