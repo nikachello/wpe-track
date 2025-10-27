@@ -17,7 +17,7 @@ export default async function handler(
   if (!chatId || !text) return res.status(200).send("ok");
 
   // Try to find driver by chatId
-  let driver = await prisma.driver.findUnique({
+  const driver = await prisma.driver.findUnique({
     where: { telegramId: chatId },
   });
 
