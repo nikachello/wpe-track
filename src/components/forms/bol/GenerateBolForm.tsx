@@ -67,7 +67,35 @@ export default function BolForm() {
       dateDelivery: formattedDate, // ✅ same date for both
     };
 
-    await generateBolPdf(formattedForm, selectedDate);
+    // await generateBolPdf(formattedForm, selectedDate);
+    try {
+      // 🔥 Send to your API route
+      const response = await fetch("/api/generate-bol", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formattedForm),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate BOL PDF");
+      }
+
+      const data = await response.json();
+      const { url } = data;
+
+      // ✅ Option 1: open link (so user can view/download)
+      window.open(url, "_blank");
+
+      // ✅ Option 2 (optional): copy to clipboard
+      // await navigator.clipboard.writeText(url);
+      // alert("BOL link copied to clipboard!");
+
+      // ✅ Option 3 (optional): send to Telegram (see below)
+      // await sendToTelegram(driverChatId, url);
+    } catch (error) {
+      console.error(error);
+      alert("Something went wrong while generating the BOL.");
+    }
   };
 
   return (
