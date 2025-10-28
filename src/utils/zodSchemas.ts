@@ -34,6 +34,21 @@ export const realCompanySchema = z.object({
   driversAssignable: z.array(z.string()).optional(),
 });
 
+export const fakeCompanySchema = z.object({
+  name: z.string().min(1, "შეიყვანეთ სტიკერის კომპანიის სახელი"),
+  streetAddress: z
+    .string()
+    .min(1, "შეიყვანეთ სტიკერის კომპანიის ქუჩის მისამართი"),
+  cityStateZip: z
+    .string()
+    .min(1, "შეიყვანეთ სტიკერის კომპანიის ქალაქი, შტატი და ზიპ კოდი"),
+  mcNumber: z.string().min(1, "შეიყვანეთ სტიკერის კომპანიის MC ნომერი"),
+  phoneNumber: z
+    .string()
+    .min(1, "შეიყვანეთ სტიკერის კომპანიის ტელეფონის ნომერი"),
+  email: z.string().min(1, "შეიყვანეთ სტიკერის კომპანიის მეილი"),
+});
+
 export const addLoadSchema = z
   .object({
     superId: z.string().min(1, { message: "Super ID სავალდებულოა" }),

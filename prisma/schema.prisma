@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model FakeCompany {
+  id String @id @default(cuid())
+  name String
+  streetAddress String
+  cityStateZip String
+  mcNumber String
+  phoneNumber String
+  email String
+}
+
 model Driver {
   id                    String              @id @default(cuid())
   name                  String

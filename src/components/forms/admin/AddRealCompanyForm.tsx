@@ -121,7 +121,6 @@ const AddRealCompanyForm = () => {
   });
 
   const onSubmit = async (values: z.infer<typeof realCompanySchema>) => {
-    console.log(values);
     if (!editData) {
       mutationAdd.mutate(values);
     } else {

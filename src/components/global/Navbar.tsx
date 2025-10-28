@@ -48,6 +48,7 @@ const NAV_LINKS = {
   [UserType.ADMIN]: [
     { href: "/drivers-tracking", label: "თრექინგი" },
     { href: "/admin/companies", label: "კომპანიები" },
+    { href: "/admin/fake-company", label: "სტიკერის კომპანია" },
     { href: "/bol-generator", label: "BOL გენერატორი" },
   ],
 };

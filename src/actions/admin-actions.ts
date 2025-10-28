@@ -1,7 +1,7 @@
 "use server";
 import { auth } from "@/utils/auth";
 import { prisma } from "@/utils/db";
-import { realCompanySchema } from "@/utils/zodSchemas";
+import { fakeCompanySchema, realCompanySchema } from "@/utils/zodSchemas";
 import { UserType } from "@prisma/client";
 import { headers } from "next/headers";
 import { z } from "zod";
@@ -20,6 +20,65 @@ export const getRealCompanies = async () => {
   }
 
   return await prisma.realCompany.findMany();
+};
+
+export const getFakeCompany = async () => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) {
+    throw new Error("საჭიროა ავტორიზაცია");
+  }
+
+  if (session.user.userType !== UserType.ADMIN) {
+    throw new Error("უნდა იყოთ ადმინისტრატორი");
+  }
+
+  return await prisma.fakeCompany.findFirst();
+};
+
+export const createFakeCompany = async (
+  data: z.infer<typeof fakeCompanySchema>
+) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) throw new Error("საჭიროა ავტორიზაცია");
+  if (session.user.userType !== UserType.ADMIN)
+    throw new Error("უნდა იყოთ ადმინისტრატორი");
+
+  const validated = fakeCompanySchema.parse(data);
+
+  const existing = await prisma.fakeCompany.findFirst();
+  if (existing)
+    throw new Error("კომპანია უკვე არსებობს, შეგიძლიათ მხოლოდ შეცვლა");
+
+  return await prisma.fakeCompany.create({
+    data: validated,
+  });
+};
+
+// UPDATE FAKE COMPANY
+export const updateFakeCompany = async (
+  id: string,
+  data: z.infer<typeof fakeCompanySchema>
+) => {
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!session) throw new Error("საჭიროა ავტორიზაცია");
+  if (session.user.userType !== UserType.ADMIN)
+    throw new Error("უნდა იყოთ ადმინისტრატორი");
+
+  const validated = fakeCompanySchema.parse(data);
+
+  return await prisma.fakeCompany.update({
+    where: { id },
+    data: validated,
+  });
 };
 
 export const addRealCompany = async (

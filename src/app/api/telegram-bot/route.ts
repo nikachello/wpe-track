@@ -8,7 +8,7 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const chatId = body.message?.chat?.id;
+  const chatId = String(body.message?.chat?.id);
   const text = body.message?.text?.trim();
 
   if (!chatId || !text) return NextResponse.json({ status: "ok" });

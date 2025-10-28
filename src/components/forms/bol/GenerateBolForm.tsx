@@ -5,17 +5,27 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DatePicker } from "@/components/global/DatePicker";
+import { FakeCompany } from "@prisma/client";
 
-export default function BolForm() {
+type Driver = {
+  id: string;
+  name: string;
+  lastName: string;
+  email: string | null;
+  telegramId: string | null;
+};
+
+export default function BolForm({
+  drivers,
+  fakeCompany,
+}: {
+  drivers: Driver[];
+  fakeCompany: FakeCompany | null;
+}) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("");
   const [form, setForm] = useState({
     loadId: "",
-    companyName: "",
-    companyStreet: "",
-    companyCityStateZip: "",
-    mc: "",
-    phone: "",
-    email: "",
     datePickup: "",
     dateDelivery: "",
     pickupAddress: "",
@@ -55,15 +65,16 @@ export default function BolForm() {
     // Create formatted object for PDF
     const formattedForm = {
       ...form,
-      mc: form.mc ? `MC Number: ${form.mc}` : "",
-      phone: form.phone ? `Phone: ${form.phone}` : "",
-      email: form.email ? `Email: ${form.email}` : "",
+      mc: `MC Number: ${fakeCompany?.mcNumber}`,
+      phone: `Phone: ${fakeCompany?.phoneNumber}`,
+      email: `Email: ${fakeCompany?.email}`,
       pickupStreet,
       pickupCityStateZip,
       deliveryStreet,
       deliveryCityStateZip,
       datePickup: formattedDate,
       dateDelivery: formattedDate, // ✅ same date for both
+      driverId: selectedDriverId,
     };
 
     // await generateBolPdf(formattedForm, selectedDate);
@@ -99,6 +110,25 @@ export default function BolForm() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>აირჩიეთ მძღოლი</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <select
+            value={selectedDriverId}
+            onChange={(e) => setSelectedDriverId(e.target.value)}
+            className="w-full border rounded-lg px-3 py-2"
+          >
+            <option value="">აირჩიეთ...</option>
+            {drivers.map((driver) => (
+              <option key={driver.id} value={driver.id}>
+                {driver.name} {driver.lastName} ({driver.email || "no email"})
+              </option>
+            ))}
+          </select>
+        </CardContent>
+      </Card>
       {/* Order Info */}
       <Card>
         <CardHeader>
@@ -109,42 +139,6 @@ export default function BolForm() {
             name="loadId"
             placeholder="Load ID"
             value={form.loadId}
-            onChange={handleChange}
-          />
-          <Input
-            name="companyName"
-            placeholder="სტიკერის კომპანია"
-            value={form.companyName}
-            onChange={handleChange}
-          />
-          <Input
-            name="companyStreet"
-            placeholder="კომპანიის ქუჩის მისამართი"
-            value={form.companyStreet}
-            onChange={handleChange}
-          />
-          <Input
-            name="companyCityStateZip"
-            placeholder="კომპანიის ქალაქი, შტატი, ზიპ კოდი"
-            value={form.companyCityStateZip}
-            onChange={handleChange}
-          />
-          <Input
-            name="mc"
-            placeholder="შეიყვანეთ MC"
-            value={form.mc}
-            onChange={handleChange}
-          />
-          <Input
-            name="phone"
-            placeholder="შეიყვანეთ ტელეფონის ნომერი"
-            value={form.phone}
-            onChange={handleChange}
-          />
-          <Input
-            name="email"
-            placeholder="შეიყვანეთ ემაილი"
-            value={form.email}
             onChange={handleChange}
           />
           <DatePicker value={selectedDate} onChange={setSelectedDate} />

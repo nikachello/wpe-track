@@ -6,10 +6,15 @@ import { UserType } from "@prisma/client";
 type Session = typeof auth.$Infer.Session;
 
 export async function middleware(request: NextRequest) {
+  const origin =
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : request.nextUrl.origin;
+
   const { data: session } = await betterFetch<Session>(
     "/api/auth/get-session",
     {
-      baseURL: request.nextUrl.origin,
+      baseURL: origin,
       headers: {
         cookie: request.headers.get("cookie") || "",
       },
