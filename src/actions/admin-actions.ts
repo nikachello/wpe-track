@@ -31,10 +31,6 @@ export const getFakeCompany = async () => {
     throw new Error("საჭიროა ავტორიზაცია");
   }
 
-  if (session.user.userType !== UserType.ADMIN) {
-    throw new Error("უნდა იყოთ ადმინისტრატორი");
-  }
-
   return await prisma.fakeCompany.findFirst();
 };
 
