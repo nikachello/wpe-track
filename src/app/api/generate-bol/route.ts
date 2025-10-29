@@ -123,8 +123,8 @@ export async function POST(req: Request) {
     const pdfBytes = await pdfDoc.save();
 
     // 5️⃣ Upload to Vercel Blob (public)
-    const currentDate = format(new Date(), "yyyy-MM-dd");
-    const fileName = `bols/${form.loadId}-${currentDate}.pdf`;
+    const currentDateTime = format(new Date(), "yyyy-MM-dd_HH-mm-ss-SSS");
+    const fileName = `bols/${form.loadId}-${currentDateTime}.pdf`;
     const buffer = Buffer.from(pdfBytes);
     const { url } = await put(fileName, buffer, {
       access: "public",
