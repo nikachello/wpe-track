@@ -65,7 +65,9 @@ export default function BolForm({
     // Create formatted object for PDF
     const formattedForm = {
       ...form,
-      name: fakeCompany?.name,
+      companyName: fakeCompany?.name,
+      companyStreet: fakeCompany?.streetAddress,
+      companyCityStateZip: fakeCompany?.cityStateZip,
       mc: `MC Number: ${fakeCompany?.mcNumber}`,
       phone: `Phone: ${fakeCompany?.phoneNumber}`,
       email: `Email: ${fakeCompany?.email}`,
